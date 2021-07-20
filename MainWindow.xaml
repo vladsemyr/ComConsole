@@ -3,11 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:ComConsole"
         mc:Ignorable="d"
         Title="ComConsole" Height="450" Width="800"
         WindowStyle="None"
-        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        ResizeMode="CanResizeWithGrip"
         
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -22,7 +24,9 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            
         </ResourceDictionary>
+        
     </Window.Resources>
 
     <Border BorderThickness="1"
@@ -37,11 +41,11 @@
 
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
+                    <ColumnDefinition x:Name="LeftPanel" Width ="150"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
-                <materialDesign:Card Padding="10">
+                <materialDesign:Card Padding="10" Grid.Column="0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition/>
@@ -52,24 +56,27 @@
                                     Orientation="Horizontal"
                                     FlowDirection="LeftToRight">
                             <TextBlock VerticalAlignment="Center"
-                                       Text="Темная тема"/>
+                                        Text="Темная тема"/>
                             <ToggleButton Name="DarkModeToggleButton"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="10 0 0 0"
-                                          IsChecked="True"
-                                          Checked="DarkModeToggleButton_Checked"
-                                          Unchecked="DarkModeToggleButton_Unchecked"/>
+                                            Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                            Margin="10 0 0 0"
+                                            IsChecked="True"
+                                            Checked="DarkModeToggleButton_Checked"
+                                            Unchecked="DarkModeToggleButton_Unchecked"/>
                         </StackPanel>
 
                     </Grid>
-                    <!--
+                </materialDesign:Card>
+
+
+                <!--
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                         <Button Content="Нажми меня"  />
                         <Button Content="Accent Button" Style="{StaticResource MaterialDesignRaisedAccentButton}" Margin="0,25,0,0"/>
                     </StackPanel>
                     -->
-                </materialDesign:Card>
-                
+                <CheckBox Grid.Column="1" Name="SlideState" Checked="SlideState_Checked" Unchecked="SlideState_Unchecked"/>
+
             </Grid>
 
             <Border BorderThickness="0 0 0 1"

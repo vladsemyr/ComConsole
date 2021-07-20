@@ -10,6 +10,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -23,9 +24,12 @@ namespace ComConsole
     {
         private readonly PaletteHelper _paletteHelper = new PaletteHelper();
 
+        public bool ShowAdditionalUI { get; set; }
+
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = this;
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -60,5 +64,18 @@ namespace ComConsole
         {
             ToggleBaseColour(false);
         }
+
+        private void SlideState_Checked(object sender, RoutedEventArgs e)
+        {
+            LeftPanel.Width = new GridLength(200, GridUnitType.Pixel); ;
+        }
+
+        private void SlideState_Unchecked(object sender, RoutedEventArgs e)
+        {
+            LeftPanel.Width = new GridLength(0, GridUnitType.Pixel); ;
+        }
+
+
+
     }
 }
