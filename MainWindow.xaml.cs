@@ -65,17 +65,27 @@ namespace ComConsole
             ToggleBaseColour(false);
         }
 
-        private void SlideState_Checked(object sender, RoutedEventArgs e)
+
+        private bool isLeftMenuClosed = false;
+        private void Border_MouseUp_1(object sender, MouseButtonEventArgs e)
         {
-            LeftPanel.Width = new GridLength(200, GridUnitType.Pixel); ;
+            isLeftMenuClosed = !isLeftMenuClosed;
+            if (isLeftMenuClosed)
+            {
+                LeftPanel.Width = new GridLength(15, GridUnitType.Pixel);
+                MenuLeftPart.Visibility = Visibility.Collapsed;
+                Menu.Padding = new Thickness(0, 0, 0, 0);
+                MenuLeftRightBorder.CornerRadius = new CornerRadius(0);
+                MenuArrow.Text = ">";
+            }
+            else
+            {
+                LeftPanel.Width = new GridLength(200, GridUnitType.Pixel);
+                MenuLeftPart.Visibility = Visibility.Visible;
+                Menu.Padding = new Thickness(10, 10, 0, 10);
+                MenuLeftRightBorder.CornerRadius = new CornerRadius(20, 0, 0, 20);
+                MenuArrow.Text = "<";
+            }
         }
-
-        private void SlideState_Unchecked(object sender, RoutedEventArgs e)
-        {
-            LeftPanel.Width = new GridLength(0, GridUnitType.Pixel); ;
-        }
-
-
-
     }
 }

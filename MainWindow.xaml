@@ -24,9 +24,9 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            
+
         </ResourceDictionary>
-        
+
     </Window.Resources>
 
     <Border BorderThickness="1"
@@ -37,37 +37,58 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
-            
+
 
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition x:Name="LeftPanel" Width ="150"/>
+                    <ColumnDefinition x:Name="LeftPanel" Width ="200"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
-                <materialDesign:Card Padding="10" Grid.Column="0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition/>
-                            <RowDefinition Height="30"/>
-                        </Grid.RowDefinitions>
-                        
-                        <StackPanel Grid.Row="1"
-                                    Orientation="Horizontal"
-                                    FlowDirection="LeftToRight">
-                            <TextBlock VerticalAlignment="Center"
-                                        Text="Темная тема"/>
-                            <ToggleButton Name="DarkModeToggleButton"
-                                            Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                            Margin="10 0 0 0"
-                                            IsChecked="True"
-                                            Checked="DarkModeToggleButton_Checked"
-                                            Unchecked="DarkModeToggleButton_Unchecked"/>
-                        </StackPanel>
 
+                <materialDesign:Card Padding="10 10 0 10" Grid.Column="0" Name="Menu">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="15"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Name="MenuLeftPart">
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition Height="30"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="1"
+                                        Orientation="Horizontal"
+                                        FlowDirection="LeftToRight">
+                                <TextBlock VerticalAlignment="Center"
+                                           Text="Темная тема"/>
+                                <ToggleButton Name="DarkModeToggleButton"
+                                              Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                              Margin="10 0 0 0"
+                                              IsChecked="True"
+                                              Checked="DarkModeToggleButton_Checked"
+                                              Unchecked="DarkModeToggleButton_Unchecked"/>
+                            </StackPanel>
+
+                        </Grid>
+                        
+                        <Border Grid.Column="1"
+                                Background="#25000000"
+                                CornerRadius="20 0 0 20"
+                                MouseUp="Border_MouseUp_1"
+                                Name="MenuLeftRightBorder">
+                            <TextBlock Text="&lt;"
+                                       VerticalAlignment="Center"
+                                       TextAlignment="Center"
+                                       Name="MenuArrow"/>
+                        </Border>
                     </Grid>
                 </materialDesign:Card>
 
+                <Border Grid.Column="1">
+                    
+                </Border>
 
                 <!--
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -75,8 +96,6 @@
                         <Button Content="Accent Button" Style="{StaticResource MaterialDesignRaisedAccentButton}" Margin="0,25,0,0"/>
                     </StackPanel>
                     -->
-                <CheckBox Grid.Column="1" Name="SlideState" Checked="SlideState_Checked" Unchecked="SlideState_Unchecked"/>
-
             </Grid>
 
             <Border BorderThickness="0 0 0 1"
