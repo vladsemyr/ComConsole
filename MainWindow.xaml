@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:ComConsole"
+        xmlns:fa="http://schemas.fontawesome.io/icons/"
         mc:Ignorable="d"
         Title="ComConsole" Height="450" Width="800"
         WindowStyle="None"
@@ -52,44 +53,64 @@
                             <ColumnDefinition/>
                             <ColumnDefinition Width="15"/>
                         </Grid.ColumnDefinitions>
-                        <Grid Name="MenuLeftPart" Margin="0 0 10 0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="30"/>
-                                <RowDefinition/>
-                                <RowDefinition Height="30"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                        <DockPanel Name="MenuLeftPart" Margin="0 0 10 0">
+                            <DockPanel DockPanel.Dock="Top"
+                                       Grid.Row="1"
+                                       Margin="0 5 0 0">
+                                <TextBlock VerticalAlignment="Center"
+                                           Text="Порт"
+                                           DockPanel.Dock="Left"
+                                           Margin="0 0 10 0"/>
+                                <ComboBox DockPanel.Dock="Right"
+                                          SelectedIndex="0"
+                                          Width="80"
+                                          HorizontalAlignment="Right">
+                                    <ComboBoxItem Content="COM1"/>
+                                    <ComboBoxItem Content="COM2"/>
+                                </ComboBox>
+                            </DockPanel>
+
+                            <DockPanel DockPanel.Dock="Top"
+                                       Margin="5 5 0 30">
+                                <Border DockPanel.Dock="Left"/>
+                                <Button Content="Настройка"
+                                        Height="20"
+                                        Padding="0"
+                                        DockPanel.Dock="Right"
+                                        Width="80"
+                                        HorizontalAlignment="Right"/>
+                            </DockPanel>
                             
-                            <TextBlock Grid.Row="2"
-                                       Grid.Column="0"
-                                       VerticalAlignment="Center"
-                                       Text="Темная тема"/>
+                            <DockPanel DockPanel.Dock="Top">
+                                <TextBlock VerticalAlignment="Center"
+                                           DockPanel.Dock="Left"
+                                           Text="Мгновенная отправка"
+                                           TextWrapping="Wrap"
+                                           Width="100"/>
 
-                            <ToggleButton Grid.Row="2"
-                                          Grid.Column="1"
-                                          Name="DarkModeToggleButton"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="10 0 0 0"
-                                          IsChecked="True"
-                                          Checked="DarkModeToggleButton_Checked"
-                                          Unchecked="DarkModeToggleButton_Unchecked"/>
+                                <ToggleButton Name="InstantSendToggleButton"
+                                              DockPanel.Dock="Right"
+                                              HorizontalAlignment="Right"
+                                              Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                              Margin="10 0 0 0"
+                                              IsChecked="True"/>
+                            </DockPanel>
+                            <DockPanel DockPanel.Dock="Bottom">
+                                <TextBlock VerticalAlignment="Center"
+                                           Text="Темная тема"
+                                           DockPanel.Dock="Left"/>
 
-                            <TextBlock Grid.Row="0"
-                                       Grid.Column="0"
-                                       VerticalAlignment="Center"
-                                       Text="Мгновенная отправка"/>
-
-                            <ToggleButton Grid.Row="0"
-                                          Grid.Column="1"
-                                          Name="InstantSendToggleButton"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="10 0 0 0"
-                                          IsChecked="True"/>
-
-                        </Grid>
+                                <ToggleButton Name="DarkModeToggleButton"
+                                              Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                              Margin="10 0 0 0"
+                                              IsChecked="True"
+                                              DockPanel.Dock="Right"
+                                              HorizontalAlignment="Right"
+                                              Checked="DarkModeToggleButton_Checked"
+                                              Unchecked="DarkModeToggleButton_Unchecked"/>
+                            </DockPanel>
+                            <Border></Border>
+                        </DockPanel>
                         
                         <Border Grid.Column="1"
                                 Background="#25000000"
@@ -111,7 +132,8 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                  Name="ConsoleScroll">
+                                  Name="ConsoleScroll"
+                                  Margin="0 0 12 10">
                         <TextBox AcceptsReturn="True"
                                  TextWrapping="Wrap"
                                  Grid.Row="0"
@@ -147,7 +169,7 @@
                     BorderBrush="#aaa"
                     Background="#aaa" 
                     MouseDown="Window_MouseDown">
-                <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
+                <DockPanel>
                     <Border Background="#ff4444"
                             Width="15"
                             BorderThickness="1"
@@ -155,8 +177,10 @@
                             MouseDown="Border_MouseDown"
                             MouseUp="Border_MouseUp"
                             Margin="2"
-                            CornerRadius="2"/>
-                </StackPanel>
+                            CornerRadius="2"
+                            DockPanel.Dock="Right"/>
+                    <TextBlock Margin="5 0 0 0">Статус</TextBlock>
+                </DockPanel>
             </Border>
 
         </Grid>
