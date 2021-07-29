@@ -52,24 +52,42 @@
                             <ColumnDefinition/>
                             <ColumnDefinition Width="15"/>
                         </Grid.ColumnDefinitions>
-                        <Grid Name="MenuLeftPart">
+                        <Grid Name="MenuLeftPart" Margin="0 0 10 0">
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
                                 <RowDefinition/>
                                 <RowDefinition Height="30"/>
                             </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Row="2"
+                                       Grid.Column="0"
+                                       VerticalAlignment="Center"
+                                       Text="Темная тема"/>
 
-                            <StackPanel Grid.Row="1"
-                                        Orientation="Horizontal"
-                                        FlowDirection="LeftToRight">
-                                <TextBlock VerticalAlignment="Center"
-                                           Text="Темная тема"/>
-                                <ToggleButton Name="DarkModeToggleButton"
-                                              Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                              Margin="10 0 0 0"
-                                              IsChecked="True"
-                                              Checked="DarkModeToggleButton_Checked"
-                                              Unchecked="DarkModeToggleButton_Unchecked"/>
-                            </StackPanel>
+                            <ToggleButton Grid.Row="2"
+                                          Grid.Column="1"
+                                          Name="DarkModeToggleButton"
+                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                          Margin="10 0 0 0"
+                                          IsChecked="True"
+                                          Checked="DarkModeToggleButton_Checked"
+                                          Unchecked="DarkModeToggleButton_Unchecked"/>
+
+                            <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       VerticalAlignment="Center"
+                                       Text="Мгновенная отправка"/>
+
+                            <ToggleButton Grid.Row="0"
+                                          Grid.Column="1"
+                                          Name="InstantSendToggleButton"
+                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                          Margin="10 0 0 0"
+                                          IsChecked="True"/>
 
                         </Grid>
                         
@@ -86,9 +104,36 @@
                     </Grid>
                 </materialDesign:Card>
 
-                <Border Grid.Column="1">
-                    
-                </Border>
+                <Grid Grid.Column="1"
+                      Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  Name="ConsoleScroll">
+                        <TextBox AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Grid.Row="0"
+                                 IsEnabled="False"
+                                 Name="ConsoleLog"
+                                 BorderThickness="0"
+                                 FontFamily="Consolas"/>
+                    </ScrollViewer>
+                    <Border Grid.Row="1"
+                            Background="#15ffffff"
+                            CornerRadius="5"
+                            Margin="0 0 10 0"
+                            Name="ConsoleCurrentLineBorder">
+                        <TextBox Margin="5 0 5 0"
+                                 TextWrapping="Wrap"
+                                 KeyDown="TextBox_KeyDown"
+                                 Name="ConsoleCurrentLine"
+                                 BorderThickness="0"
+                                 FontFamily="Consolas"/>
+                    </Border>
+
+                </Grid>
 
                 <!--
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
