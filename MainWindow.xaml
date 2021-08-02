@@ -142,19 +142,25 @@
                              FontFamily="Consolas"
                              PreviewTextInput="ConsoleLogFake_PreviewTextInput"
                              PreviewKeyDown="ConsoleLogFake_KeyDown"
-                             Opacity="10"/>
+                             Opacity="0"/>
 
                     <ScrollViewer VerticalScrollBarVisibility="Auto"
                                   Grid.Row="0"
                                   Name="ConsoleScroll"
                                   Margin="0 0 12 10">
-                            <TextBox AcceptsReturn="True"
-                                     TextWrapping="Wrap"
-                                     IsEnabled="True"
-                                     Name="ConsoleLog"
-                                     BorderThickness="0"
-                                     FontFamily="Consolas"
-                                     GotFocus="ConsoleLog_GotFocus"/>
+                        <!--
+                        <TextBox AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 IsEnabled="True"
+                                 Name="ConsoleLog"
+                                 BorderThickness="0"
+                                 FontFamily="Consolas"
+                                 GotFocus="ConsoleLog_GotFocus"/>
+                         -->
+                        <RichTextBox Name="ConsoleLog"
+                                   FontFamily="Consolas"
+                                   GotFocus="ConsoleLog_GotFocus"
+                                   Focusable="False"/>
                     </ScrollViewer>
                     
                     

@@ -3,6 +3,7 @@ using System.IO.Ports;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -29,7 +30,9 @@ namespace ComConsole
 
             SerialPortNames = SerialPort.GetPortNames();
             SelectedSerialPortName = null;
-        
+
+            Paragraph paragraph = new Paragraph();
+            ConsoleLog.Document.Blocks.Add(paragraph);
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -101,20 +104,17 @@ namespace ComConsole
             Dispatcher.Invoke(() =>
             {
                 string receivedText = serialPort.ReadExisting();
-                string t = "";
-                for (int i = 0; i < receivedText.Length; i++)
-                {
-                    if (receivedText[i] != '\x08')
-                    {
-                        ConsoleLog.Text += receivedText[i];
-                    }
-                    else
-                    {
-                        ConsoleLog.Text = ConsoleLog.Text.Substring(0, ConsoleLog.Text.Length - 1);
-                    }
-                }
 
-                //ConsoleLog.Text += receivedText;
+                System.Random r = new System.Random();
+
+                Run run = new Run(receivedText)
+                {
+                    Foreground = new SolidColorBrush(Color.FromRgb((byte)r.Next(), (byte)r.Next(), (byte)r.Next())) // My Color
+                };
+                //paragraph.Inlines.Add(run);
+                (ConsoleLog.Document.Blocks.FirstBlock as Paragraph).Inlines.Add(run);
+
+                //ConsoleLog.AppendText(receivedText);
                 ConsoleScroll.ScrollToEnd();
             });
         }
@@ -210,6 +210,9 @@ namespace ComConsole
 
             if (e.Key == Key.Back)
                 _serialPort.Write("\x08");
+
+            if (e.Key == Key.Space)
+                _serialPort.Write(" ");
 
         }
     }
