@@ -92,9 +92,6 @@ namespace ComConsole
             }
         }
 
-        private void ReceiverThread()
-        {
-        }
 
         private void _serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
@@ -104,15 +101,16 @@ namespace ComConsole
             Dispatcher.Invoke(() =>
             {
                 ConsoleLog.Text += serialPort.ReadExisting();
+                ConsoleScroll.ScrollToEnd();
             });
         }
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            int str = KeyInterop.VirtualKeyFromKey(e.Key);
+            //int str = KeyInterop.VirtualKeyFromKey(e.Key);
 
-            _serialPort.BaseStream.WriteByte((byte)str);
-            return;
+            //_serialPort.BaseStream.WriteByte((byte)str);
+            //return;
 
             if (e.Key == Key.Return)
             {
@@ -175,6 +173,20 @@ namespace ComConsole
                 return;
             
             _serialPort.DataReceived += _serialPort_DataReceived;
+        }
+
+        private void ConsoleLogFake_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            _serialPort.Write(e.Text);
+            
+            if (!(sender is TextBox tb))
+                return;
+            tb.Text = "";
+        }
+
+        private void ConsoleLog_GotFocus(object sender, RoutedEventArgs e)
+        {
+            ConsoleLogFake.Focus();
         }
     }
 }
