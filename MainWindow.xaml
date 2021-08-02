@@ -64,10 +64,11 @@
                                 <ComboBox DockPanel.Dock="Right"
                                           SelectedIndex="0"
                                           Width="80"
-                                          HorizontalAlignment="Right">
-                                    <ComboBoxItem Content="COM1"/>
-                                    <ComboBoxItem Content="COM2"/>
-                                </ComboBox>
+                                          HorizontalAlignment="Right"
+                                          ItemsSource="{Binding SerialPortNames}"
+                                          SelectedItem="{Binding SelectedSerialPortName}"
+                                          SelectionChanged="ComboBox_SelectionChanged"/>
+
                             </DockPanel>
 
                             <DockPanel DockPanel.Dock="Top"

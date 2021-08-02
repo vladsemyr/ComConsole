@@ -1,5 +1,8 @@
 ﻿using MaterialDesignThemes.Wpf;
+using System.IO.Ports;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -12,12 +15,21 @@ namespace ComConsole
     {
         private readonly PaletteHelper _paletteHelper = new PaletteHelper();
 
+        public string[] SerialPortNames { get; set; }
+        public string SelectedSerialPortName { get; set; }
+
+        private SerialPort _serialPort = null;
+
         public bool ShowAdditionalUI { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
             DataContext = this;
+
+            SerialPortNames = SerialPort.GetPortNames();
+            SelectedSerialPortName = null;
+        
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -80,14 +92,89 @@ namespace ComConsole
             }
         }
 
+        private void ReceiverThread()
+        {
+        }
+
+        private void _serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            if (!(sender is SerialPort serialPort))
+                return;
+
+            Dispatcher.Invoke(() =>
+            {
+                ConsoleLog.Text += serialPort.ReadExisting();
+            });
+        }
+
         private void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
+            int str = KeyInterop.VirtualKeyFromKey(e.Key);
+
+            _serialPort.BaseStream.WriteByte((byte)str);
+            return;
+
             if (e.Key == Key.Return)
             {
-                ConsoleLog.Text = ConsoleLog.Text + ConsoleCurrentLine.Text + "\n";
+                if (!_serialPort.IsOpen)
+                    return;
+
+                _serialPort.WriteLine(ConsoleCurrentLine.Text);
+                _serialPort.BaseStream.Flush();
+
+                /*
+                Task.Factory.StartNew(() =>
+                {
+                    string line = "";
+                    while (true)
+                    {
+                        try
+                        {
+                            line = _serialPort.ReadLine();
+                        }
+                        catch
+                        {
+                            break;
+                        }
+
+                        Dispatcher.Invoke(() =>
+                        {
+                            ConsoleLog.Text += line;
+                        });
+                    }
+                });*/
+
+                //ConsoleLog.Text = ConsoleLog.Text + ConsoleCurrentLine.Text + "\n";
                 ConsoleCurrentLine.Text = "";
                 ConsoleScroll.ScrollToEnd();
             }
+        }
+
+        private void ComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (!(sender is ComboBox comNameComboBox))
+                return;
+
+            if (_serialPort is null)
+                _serialPort = new SerialPort();
+
+            _serialPort.Close();
+
+            if (!(comNameComboBox.SelectedValue is string comName) || comName == "")
+                return;
+
+            _serialPort.PortName = comName;
+            _serialPort.BaudRate = 115200;
+            _serialPort.Parity = Parity.None;
+            _serialPort.StopBits = StopBits.One;
+            _serialPort.ReadTimeout = 1000;
+            _serialPort.WriteTimeout = 1000;
+            _serialPort.Open();
+
+            if (!_serialPort.IsOpen)
+                return;
+            
+            _serialPort.DataReceived += _serialPort_DataReceived;
         }
     }
 }
