@@ -141,7 +141,8 @@
                              BorderThickness="0"
                              FontFamily="Consolas"
                              PreviewTextInput="ConsoleLogFake_PreviewTextInput"
-                             Opacity="0"/>
+                             PreviewKeyDown="ConsoleLogFake_KeyDown"
+                             Opacity="10"/>
 
                     <ScrollViewer VerticalScrollBarVisibility="Auto"
                                   Grid.Row="0"

@@ -100,7 +100,21 @@ namespace ComConsole
 
             Dispatcher.Invoke(() =>
             {
-                ConsoleLog.Text += serialPort.ReadExisting();
+                string receivedText = serialPort.ReadExisting();
+                string t = "";
+                for (int i = 0; i < receivedText.Length; i++)
+                {
+                    if (receivedText[i] != '\x08')
+                    {
+                        ConsoleLog.Text += receivedText[i];
+                    }
+                    else
+                    {
+                        ConsoleLog.Text = ConsoleLog.Text.Substring(0, ConsoleLog.Text.Length - 1);
+                    }
+                }
+
+                //ConsoleLog.Text += receivedText;
                 ConsoleScroll.ScrollToEnd();
             });
         }
@@ -187,6 +201,16 @@ namespace ComConsole
         private void ConsoleLog_GotFocus(object sender, RoutedEventArgs e)
         {
             ConsoleLogFake.Focus();
+        }
+
+        private void ConsoleLogFake_KeyDown(object sender, KeyEventArgs e)
+        {
+            //if (Keyboard.IsKeyDown(Key.Back))
+            //    _serialPort.Write("\x08");
+
+            if (e.Key == Key.Back)
+                _serialPort.Write("\x08");
+
         }
     }
 }
