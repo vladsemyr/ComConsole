@@ -133,17 +133,6 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <TextBox Name="ConsoleLogFake"
-                             Grid.Row="0"
-                             Margin="0 0 12 10"
-                             TextWrapping="Wrap"
-                             IsEnabled="True"
-                             BorderThickness="0"
-                             FontFamily="Consolas"
-                             PreviewTextInput="ConsoleLogFake_PreviewTextInput"
-                             PreviewKeyDown="ConsoleLogFake_KeyDown"
-                             Opacity="0"/>
-
                     <ScrollViewer VerticalScrollBarVisibility="Auto"
                                   Grid.Row="0"
                                   Name="ConsoleScroll"
@@ -158,13 +147,20 @@
                                  GotFocus="ConsoleLog_GotFocus"/>
                          -->
                         <RichTextBox Name="ConsoleLog"
-                                   FontFamily="Consolas"
-                                   GotFocus="ConsoleLog_GotFocus"
-                                   Focusable="False"/>
+                                     FontFamily="Consolas"
+                                     PreviewKeyDown="ConsoleLog_PreviewKeyDown"
+                                     PreviewTextInput="ConsoleLog_PreviewTextInput">
+                            <FlowDocument>
+                                <Paragraph>
+                                    <Run Text="{Binding TestRun}"/>
+                                </Paragraph>
+                            </FlowDocument>
+                        </RichTextBox>
                     </ScrollViewer>
+
                     
-                    
-                    
+
+
                     <Border Grid.Row="1"
                             Background="#15ffffff"
                             CornerRadius="5"

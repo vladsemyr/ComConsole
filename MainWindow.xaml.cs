@@ -1,5 +1,7 @@
 ﻿using MaterialDesignThemes.Wpf;
+using System.ComponentModel;
 using System.IO.Ports;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,7 +14,7 @@ namespace ComConsole
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         private readonly PaletteHelper _paletteHelper = new PaletteHelper();
 
@@ -23,6 +25,13 @@ namespace ComConsole
 
         public bool ShowAdditionalUI { get; set; }
 
+        private string _testRun;
+        public string TestRun
+        {
+            get => _testRun;
+            set { _testRun = value; OnPropertyChanged("TestRun"); }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -30,9 +39,12 @@ namespace ComConsole
 
             SerialPortNames = SerialPort.GetPortNames();
             SelectedSerialPortName = null;
+        }
 
-            Paragraph paragraph = new Paragraph();
-            ConsoleLog.Document.Blocks.Add(paragraph);
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void OnPropertyChanged([CallerMemberName] string prop = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -74,6 +86,9 @@ namespace ComConsole
 
 
         private bool isLeftMenuClosed = false;
+
+        
+
         private void Border_MouseUp_1(object sender, MouseButtonEventArgs e)
         {
             isLeftMenuClosed = !isLeftMenuClosed;
@@ -101,20 +116,19 @@ namespace ComConsole
             if (!(sender is SerialPort serialPort))
                 return;
 
+            string receivedText = serialPort.ReadExisting().Replace("\r", "");
+            System.Random r = new System.Random();
+
+            Run run = new Run(receivedText)
+            {
+                Foreground = new SolidColorBrush(Color.FromRgb((byte)r.Next(), (byte)r.Next(), (byte)r.Next())),
+            };
+
+            TestRun += receivedText;
+
+            //(ConsoleLog.Document.Blocks.FirstBlock as Paragraph).Inlines.Add(run);
             Dispatcher.Invoke(() =>
             {
-                string receivedText = serialPort.ReadExisting();
-
-                System.Random r = new System.Random();
-
-                Run run = new Run(receivedText)
-                {
-                    Foreground = new SolidColorBrush(Color.FromRgb((byte)r.Next(), (byte)r.Next(), (byte)r.Next())) // My Color
-                };
-                //paragraph.Inlines.Add(run);
-                (ConsoleLog.Document.Blocks.FirstBlock as Paragraph).Inlines.Add(run);
-
-                //ConsoleLog.AppendText(receivedText);
                 ConsoleScroll.ScrollToEnd();
             });
         }
@@ -134,29 +148,6 @@ namespace ComConsole
                 _serialPort.WriteLine(ConsoleCurrentLine.Text);
                 _serialPort.BaseStream.Flush();
 
-                /*
-                Task.Factory.StartNew(() =>
-                {
-                    string line = "";
-                    while (true)
-                    {
-                        try
-                        {
-                            line = _serialPort.ReadLine();
-                        }
-                        catch
-                        {
-                            break;
-                        }
-
-                        Dispatcher.Invoke(() =>
-                        {
-                            ConsoleLog.Text += line;
-                        });
-                    }
-                });*/
-
-                //ConsoleLog.Text = ConsoleLog.Text + ConsoleCurrentLine.Text + "\n";
                 ConsoleCurrentLine.Text = "";
                 ConsoleScroll.ScrollToEnd();
             }
@@ -189,31 +180,33 @@ namespace ComConsole
             _serialPort.DataReceived += _serialPort_DataReceived;
         }
 
-        private void ConsoleLogFake_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        private void ConsoleLog_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             _serialPort.Write(e.Text);
-            
-            if (!(sender is TextBox tb))
+            e.Handled = true;
+        }
+
+        private void ConsoleLog_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (!(sender is RichTextBox rtb))
                 return;
-            tb.Text = "";
-        }
-
-        private void ConsoleLog_GotFocus(object sender, RoutedEventArgs e)
-        {
-            ConsoleLogFake.Focus();
-        }
-
-        private void ConsoleLogFake_KeyDown(object sender, KeyEventArgs e)
-        {
-            //if (Keyboard.IsKeyDown(Key.Back))
-            //    _serialPort.Write("\x08");
 
             if (e.Key == Key.Back)
                 _serialPort.Write("\x08");
 
             if (e.Key == Key.Space)
+            {
                 _serialPort.Write(" ");
+                //ConsoleLog_PreviewTextInput(null, new TextCompositionEventArgs(null, new TextComposition())
+            }
+            
+            if (e.Key == Key.Enter)
+            {
+                _serialPort.Write("\n");
+                e.Handled = true;
+            }
 
+            rtb.CaretPosition = rtb.CaretPosition.DocumentEnd;
         }
     }
 }
