@@ -208,5 +208,20 @@ namespace ComConsole
 
             rtb.CaretPosition = rtb.CaretPosition.DocumentEnd;
         }
+
+        private void TopmostToggleButton_Checked(object sender, RoutedEventArgs e)
+        {
+            Topmost = true;
+        }
+
+        private void TopmostToggleButton_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Topmost = false;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            TestRun = "";
+        }
     }
 }
