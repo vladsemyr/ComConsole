@@ -1,4 +1,5 @@
 ﻿using MaterialDesignThemes.Wpf;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO.Ports;
 using System.Runtime.CompilerServices;
@@ -151,6 +152,18 @@ namespace ComConsole
          
          */
 
+        Dictionary<string, Color> CosoleForegroundColorsMap = new Dictionary<string, Color>
+        {
+            {"0;31",  Color.FromRgb(255, 150, 150)},
+            {"1;31",  Color.FromRgb(255, 150, 150)}
+        };
+
+        Dictionary<string, Color> CosoleBackgroundColorsMap = new Dictionary<string, Color>
+        {
+            {"40m",  Color.FromRgb(0, 0, 0)},
+            {"41m",  Color.FromRgb(100, 150, 150)}
+        };
+
         private void _serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             if (!(sender is SerialPort serialPort))
@@ -169,26 +182,28 @@ namespace ComConsole
             
             for (int i = 0; i < parts.Length; ++i)
             {
-                int del_len = 2;
-
                 if (parts[i].StartsWith("0m"))
                 {
                     NextRun(parts[i]);
                 }
-                else if (parts[i].StartsWith("0;"))
+                else if (parts[i].Length >= 5)
                 {
-                    // dark text
-                    NextRun(parts[i], Color.FromRgb(255, 150, 150));
+                    bool is_frg_exist = CosoleForegroundColorsMap.TryGetValue(parts[i].Substring(0, 4), out Color newfrgcolor);
+                    if (is_frg_exist && parts[i][5] == 'm')
+                    {
+                        NextRun(parts[i], newfrgcolor);
+                    }
+                    else if (parts[i][5] == ';')
+                    {
+                        bool is_bkg_exist = CosoleForegroundColorsMap.TryGetValue(parts[i].Substring(6, 9), out Color newbkgcolor);
+                        if (is_bkg_exist)
+                        {
+
+                        }
+                    }
                 }
-                else if (parts[i].StartsWith("1;"))
-                {
-                    // light text
-                    NextRun(parts[i], Color.FromRgb(255, 150, 150));
-                }
-                else
-                {
-                    TestRun += parts[i];
-                }
+
+                TestRun += parts[i];
             }
 
             //(ConsoleLog.Document.Blocks.FirstBlock as Paragraph).Inlines.Add(run);
