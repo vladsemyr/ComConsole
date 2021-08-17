@@ -85,14 +85,10 @@ namespace ComConsole
         }
 
 
-        private bool isLeftMenuClosed = false;
-
-        
 
         private void Border_MouseUp_1(object sender, MouseButtonEventArgs e)
         {
-            isLeftMenuClosed = !isLeftMenuClosed;
-            if (isLeftMenuClosed)
+            if (MenuLeftPart.Visibility != Visibility.Collapsed)
             {
                 LeftPanel.Width = new GridLength(15, GridUnitType.Pixel);
                 MenuLeftPart.Visibility = Visibility.Collapsed;
@@ -172,7 +168,14 @@ namespace ComConsole
             _serialPort.StopBits = StopBits.One;
             _serialPort.ReadTimeout = 1000;
             _serialPort.WriteTimeout = 1000;
-            _serialPort.Open();
+            try
+            {
+                _serialPort.Open();
+            }
+            catch
+            {
+
+            }
 
             if (!_serialPort.IsOpen)
                 return;
