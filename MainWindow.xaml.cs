@@ -2,9 +2,9 @@
 using System.ComponentModel;
 using System.IO.Ports;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -39,6 +39,7 @@ namespace ComConsole
 
             SerialPortNames = SerialPort.GetPortNames();
             SelectedSerialPortName = null;
+            TestRun = "";
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -106,21 +107,89 @@ namespace ComConsole
             }
         }
 
+        private void _NextRun(string text, Color? color)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                // убираем биндинг с последнего Run, сохраняя текст
+                string run_text = TestRun;
+                Paragraph prg = ConsoleLog.Document.Blocks.FirstBlock as Paragraph;
+                Run run = prg.Inlines.LastInline as Run;
+                BindingOperations.ClearBinding(run, Run.TextProperty);
+                run.Text = run_text;
+
+                TestRun = text;
+                run = new Run();
+
+                if (color != null)
+                    run.Foreground = new SolidColorBrush(color.Value);
+
+                _ = run.SetBinding(Run.TextProperty, "TestRun");
+                prg.Inlines.Add(run);
+            });
+        }
+
+        private void NextRun(string text)
+        {
+            _NextRun(text, null);
+        }
+
+        private void NextRun(string text, Color color)
+        {
+            _NextRun(text, color);
+        }
+
+        /*
+            \x1b[1;30m \x1b[0;30m \x1b[1;30;40m         BLACK
+            \x1b[1;31m \x1b[0;31m \x1b[1;31;41m         RED
+            \x1b[1;32m \x1b[0;32m \x1b[1;32;42m         GREEN
+            \x1b[1;33m \x1b[0;33m \x1b[1;33;43m         BROWN/YELLOW
+            \x1b[1;34m \x1b[0;34m \x1b[1;34;44m         BLUE
+            \x1b[1;35m \x1b[0;35m \x1b[1;35;45m         MAGENTA
+            \x1b[1;36m \x1b[0;36m \x1b[1;36;46m         CYAN
+            \x1b[1;37m \x1b[0;37m \x1b[1;37;47m         GRAY/WHITE
+         
+         */
 
         private void _serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             if (!(sender is SerialPort serialPort))
                 return;
-
-            string receivedText = serialPort.ReadExisting().Replace("\r", "");
             System.Random r = new System.Random();
 
-            Run run = new Run(receivedText)
-            {
-                Foreground = new SolidColorBrush(Color.FromRgb((byte)r.Next(), (byte)r.Next(), (byte)r.Next())),
-            };
+            string receivedText = serialPort.ReadExisting().Replace("\r", "");
 
-            TestRun += receivedText;
+
+            int run_tail_len = TestRun.Length < 15 ? TestRun.Length : 15;
+            string run_tail = TestRun.Substring(TestRun.Length - run_tail_len, run_tail_len); // хвост
+            TestRun = TestRun.Substring(0, TestRun.Length - run_tail_len); // без хвоста
+
+            receivedText = run_tail + receivedText;
+            string[] parts = receivedText.Split(new string[] { "\x1b[" }, System.StringSplitOptions.None);
+            
+            for (int i = 0; i < parts.Length; ++i)
+            {
+                int del_len = 2;
+
+                if (parts[i].StartsWith("0m"))
+                {
+                    NextRun(parts[i]);
+                }
+                else if (parts[i].StartsWith("0;"))
+                {
+                    // dark text
+                    NextRun(parts[i], Color.FromRgb(255, 150, 150));
+                }
+                else if (parts[i].StartsWith("1;"))
+                {
+                    // light text
+                    NextRun(parts[i], Color.FromRgb(255, 150, 150));
+                }
+                else
+                {
+                    TestRun += parts[i];
+                }
+            }
 
             //(ConsoleLog.Document.Blocks.FirstBlock as Paragraph).Inlines.Add(run);
             Dispatcher.Invoke(() =>

@@ -129,7 +129,7 @@
                                 <ToggleButton Name="TopmostToggleButton"
                                               Style="{StaticResource MaterialDesignSwitchToggleButton}"
                                               Margin="10 0 0 0"
-                                              IsChecked="True"
+                                              IsChecked="False"
                                               DockPanel.Dock="Right"
                                               HorizontalAlignment="Right"
                                               Checked="TopmostToggleButton_Checked"
