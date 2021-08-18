@@ -1,8 +1,11 @@
 ﻿using MaterialDesignThemes.Wpf;
 using System;
+using System.CodeDom;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -240,6 +243,18 @@ namespace ComConsole
             }
         }
 
+        private static string ToLiteral(string input)
+        {
+            using (var writer = new StringWriter())
+            {
+                using (var provider = CodeDomProvider.CreateProvider("CSharp"))
+                {
+                    provider.GenerateCodeFromExpression(new CodePrimitiveExpression(input), writer, null);
+                    return writer.ToString();
+                }
+            }
+        }
+
         private void _serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             if (!(sender is SerialPort serialPort))
@@ -254,8 +269,8 @@ namespace ComConsole
             TestRun = TestRun.Substring(0, TestRun.Length - run_tail_len); // без хвоста
 
             receivedText = run_tail + receivedText;
-            string[] parts = receivedText.Split(new string[] { "\x1b[" }, StringSplitOptions.None);
-            
+            string[] parts = receivedText.Split(new string[] { "\x1b[" }, StringSplitOptions.RemoveEmptyEntries);
+
             for (int i = 0; i < parts.Length; ++i)
             {
                 ConsoleTextWeight weight = ConsoleTextWeight.Default;
@@ -314,6 +329,10 @@ namespace ComConsole
                         ConsoleColorGet(color_num_1, ref frgcolor, ref bckcolor);
                         ConsoleColorGet(color_num_2, ref frgcolor, ref bckcolor);
                         del_len = 8;
+                    }
+                    else
+                    {
+                        throw new Exception("pass");
                     }
 
                     parts[i] = parts[i].Substring(del_len);
