@@ -1,6 +1,8 @@
 ﻿using MaterialDesignThemes.Wpf;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO.Ports;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -39,8 +41,10 @@ namespace ComConsole
             DataContext = this;
 
             SerialPortNames = SerialPort.GetPortNames();
-            SelectedSerialPortName = null;
+            SelectedSerialPortName = SerialPortNames[0];
             TestRun = "";
+
+            LeftPanelHide();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -87,28 +91,39 @@ namespace ComConsole
         }
 
 
+        private void LeftPanelHide()
+        {
+            LeftPanel.Width = new GridLength(15, GridUnitType.Pixel);
+            MenuLeftPart.Visibility = Visibility.Collapsed;
+            Menu.Padding = new Thickness(0, 0, 0, 0);
+            MenuLeftRightBorder.CornerRadius = new CornerRadius(0);
+            MenuArrow.Text = ">";
+        }
+
+        private void LeftPanelShow()
+        {
+            LeftPanel.Width = new GridLength(200, GridUnitType.Pixel);
+            MenuLeftPart.Visibility = Visibility.Visible;
+            Menu.Padding = new Thickness(10, 10, 0, 10);
+            MenuLeftRightBorder.CornerRadius = new CornerRadius(20, 0, 0, 20);
+            MenuArrow.Text = "<";
+        }
 
         private void Border_MouseUp_1(object sender, MouseButtonEventArgs e)
         {
             if (MenuLeftPart.Visibility != Visibility.Collapsed)
             {
-                LeftPanel.Width = new GridLength(15, GridUnitType.Pixel);
-                MenuLeftPart.Visibility = Visibility.Collapsed;
-                Menu.Padding = new Thickness(0, 0, 0, 0);
-                MenuLeftRightBorder.CornerRadius = new CornerRadius(0);
-                MenuArrow.Text = ">";
+                LeftPanelHide();
             }
             else
             {
-                LeftPanel.Width = new GridLength(200, GridUnitType.Pixel);
-                MenuLeftPart.Visibility = Visibility.Visible;
-                Menu.Padding = new Thickness(10, 10, 0, 10);
-                MenuLeftRightBorder.CornerRadius = new CornerRadius(20, 0, 0, 20);
-                MenuArrow.Text = "<";
+                LeftPanelShow();
             }
         }
 
-        private void _NextRun(string text, Color? color)
+        Random random = new Random();
+
+        private void _NextRun(string text, Color? color, bool is_bold = false)
         {
             Dispatcher.Invoke(() =>
             {
@@ -125,6 +140,9 @@ namespace ComConsole
                 if (color != null)
                     run.Foreground = new SolidColorBrush(color.Value);
 
+                if (is_bold)
+                    run.FontWeight = FontWeights.ExtraBold;
+
                 _ = run.SetBinding(Run.TextProperty, "TestRun");
                 prg.Inlines.Add(run);
             });
@@ -140,6 +158,16 @@ namespace ComConsole
             _NextRun(text, color);
         }
 
+        private void NextRun(string text, bool is_bold)
+        {
+            _NextRun(text, null, is_bold);
+        }
+
+        private void NextRun(string text, Color color, bool is_bold)
+        {
+            _NextRun(text, color, is_bold);
+        }
+
         /*
             \x1b[1;30m \x1b[0;30m \x1b[1;30;40m         BLACK
             \x1b[1;31m \x1b[0;31m \x1b[1;31;41m         RED
@@ -152,17 +180,49 @@ namespace ComConsole
          
          */
 
-        Dictionary<string, Color> CosoleForegroundColorsMap = new Dictionary<string, Color>
-        {
-            {"0;31",  Color.FromRgb(255, 150, 150)},
-            {"1;31",  Color.FromRgb(255, 150, 150)}
-        };
+        /*
+            0,1   - жирность
+            30-37 - foreground
+            40-47 - background
+        */
 
-        Dictionary<string, Color> CosoleBackgroundColorsMap = new Dictionary<string, Color>
+        private enum ConsoleColor
         {
-            {"40m",  Color.FromRgb(0, 0, 0)},
-            {"41m",  Color.FromRgb(100, 150, 150)}
-        };
+            Default = 0,
+            Black = 30,
+            Red = 31,
+            Green = 32,
+            Yellow = 33,
+            Blue = 34,
+            Magenta = 35,
+            Cyan = 36,
+            White = 37
+        }
+
+        private Color ConsoleColorToColor(ConsoleColor cc)
+        {
+            switch (cc)
+            {
+                case ConsoleColor.Default: return Color.FromRgb(0, 0, 0);
+                case ConsoleColor.Black: return Color.FromRgb(0, 0, 0);
+                case ConsoleColor.Red: return Color.FromRgb(255, 0, 0);
+                case ConsoleColor.Green: return Color.FromRgb(0, 255, 0);
+                case ConsoleColor.Yellow: return Color.FromRgb(255, 255, 0);
+                case ConsoleColor.Blue: return Color.FromRgb(0, 0, 255);
+                case ConsoleColor.Magenta: return Color.FromRgb(255, 0, 255);
+                case ConsoleColor.Cyan: return Color.FromRgb(0, 255, 255);
+                case ConsoleColor.White: return Color.FromRgb(255, 255, 255);
+                default: return Color.FromRgb(0, 0, 0);
+            }
+        }
+
+        private enum ConsoleTextWeight
+        {
+            Default = 0,
+            Bold = 1
+        }
+
+
 
         private void _serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
@@ -182,28 +242,125 @@ namespace ComConsole
             
             for (int i = 0; i < parts.Length; ++i)
             {
-                if (parts[i].StartsWith("0m"))
+                ConsoleTextWeight weight = ConsoleTextWeight.Default;
+                ConsoleColor frgcolor = ConsoleColor.Default;
+                ConsoleColor bckcolor = ConsoleColor.Default;
+
+                try
                 {
-                    NextRun(parts[i]);
-                }
-                else if (parts[i].Length >= 5)
-                {
-                    bool is_frg_exist = CosoleForegroundColorsMap.TryGetValue(parts[i].Substring(0, 4), out Color newfrgcolor);
-                    if (is_frg_exist && parts[i][5] == 'm')
+                    int del_len = 0;
+                    if (parts[i].Length >= 2 && parts[i][1] == 'm')
                     {
-                        NextRun(parts[i], newfrgcolor);
+                        // 0m
+                        string bold_flag = parts[i].Substring(0, 1);
+                        weight = uint.Parse(bold_flag) == 1 ? ConsoleTextWeight.Bold : ConsoleTextWeight.Default;
+                        
+                        del_len = 2;
                     }
-                    else if (parts[i][5] == ';')
+                    else if (parts[i].Length >= 3 && parts[i][2] == 'm')
                     {
-                        bool is_bkg_exist = CosoleForegroundColorsMap.TryGetValue(parts[i].Substring(6, 9), out Color newbkgcolor);
-                        if (is_bkg_exist)
+                        // 33m
+                        string color_flag = parts[i].Substring(0, 2);
+                        uint color_num = uint.Parse(color_flag);
+
+                        if (color_num >= 30 && color_num <= 37)
                         {
-
+                            frgcolor = (ConsoleColor)color_num;
                         }
-                    }
-                }
+                        else if (color_num >= 40 && color_num <= 47)
+                        {
+                            bckcolor = (ConsoleColor)(color_num - 10);
+                        }
 
-                TestRun += parts[i];
+                        del_len = 3;
+                    }
+                    else if (parts[i].Length >= 5 && parts[i][4] == 'm')
+                    {
+                        // 1;33m
+                        string bold_flag = parts[i].Substring(0, 1);
+                        string color_flag = parts[i].Substring(2, 2);
+                        
+                        weight = uint.Parse(bold_flag) == 1 ? ConsoleTextWeight.Bold : ConsoleTextWeight.Default;
+                        uint color_num = uint.Parse(color_flag);
+
+                        if (color_num >= 30 && color_num <= 37)
+                        {
+                            frgcolor = (ConsoleColor)color_num;
+                        }
+                        else if (color_num >= 40 && color_num <= 47)
+                        {
+                            bckcolor = (ConsoleColor)(color_num - 10);
+                        }
+                        
+                        del_len = 5;
+                    }
+                    else if (parts[i].Length >= 6 && parts[i][5] == 'm')
+                    {
+                        // 33;40m
+                        uint color_num_1 = uint.Parse(parts[i].Substring(0, 2));
+                        uint color_num_2 = uint.Parse(parts[i].Substring(3, 2));
+                        if (color_num_1 >= 30 && color_num_1 <= 37)
+                        {
+                            frgcolor = (ConsoleColor)color_num_1;
+                        }
+                        else if (color_num_1 >= 40 && color_num_1 <= 47)
+                        {
+                            bckcolor = (ConsoleColor)(color_num_1 - 10);
+                        }
+
+                        if (color_num_2 >= 30 && color_num_2 <= 37)
+                        {
+                            frgcolor = (ConsoleColor)color_num_2;
+                        }
+                        else if (color_num_2 >= 40 && color_num_2 <= 47)
+                        {
+                            bckcolor = (ConsoleColor)(color_num_2 - 10);
+                        }
+
+                        del_len = 6;
+                    }
+                    else if (parts[i].Length >= 8 && parts[i][7] == 'm')
+                    {
+                        // 1;33;40m
+                        string bold_flag = parts[i].Substring(0, 1);
+                        uint color_num_1 = uint.Parse(parts[i].Substring(2, 2));
+                        uint color_num_2 = uint.Parse(parts[i].Substring(5, 2));
+                        
+                        weight = uint.Parse(bold_flag) == 1 ? ConsoleTextWeight.Bold : ConsoleTextWeight.Default;
+                        if (color_num_1 >= 30 && color_num_1 <= 37)
+                        {
+                            frgcolor = (ConsoleColor)color_num_1;
+                        }
+                        else if (color_num_1 >= 40 && color_num_1 <= 47)
+                        {
+                            bckcolor = (ConsoleColor)(color_num_1 - 10);
+                        }
+
+                        if (color_num_2 >= 30 && color_num_2 <= 37)
+                        {
+                            frgcolor = (ConsoleColor)color_num_2;
+                        }
+                        else if (color_num_2 >= 40 && color_num_2 <= 47)
+                        {
+                            bckcolor = (ConsoleColor)(color_num_2 - 10);
+                        }
+
+                        del_len = 8;
+                    }
+
+                    parts[i] = parts[i].Substring(del_len);
+
+                    bool is_bold = weight == ConsoleTextWeight.Bold;
+
+                    if (frgcolor != ConsoleColor.Default)
+                        NextRun(parts[i], ConsoleColorToColor(frgcolor), is_bold);
+                    else
+                        NextRun(parts[i], is_bold);
+                }
+                catch
+                {
+                    TestRun += parts[i];
+                }
             }
 
             //(ConsoleLog.Document.Blocks.FirstBlock as Paragraph).Inlines.Add(run);
@@ -309,6 +466,26 @@ namespace ComConsole
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             TestRun = "";
+        }
+
+        
+
+        public BooleanToVisibilityConverterInverse converterInverse = new BooleanToVisibilityConverterInverse();
+    }
+
+    [ValueConversion(typeof(bool), typeof(Visibility))]
+    public class BooleanToVisibilityConverterInverse : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool is_collapsed = (bool)value;
+            return is_collapsed ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            Visibility visibility = (Visibility)value;
+            return visibility == Visibility.Collapsed;
         }
     }
 }

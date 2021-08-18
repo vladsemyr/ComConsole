@@ -53,7 +53,8 @@
                             <ColumnDefinition/>
                             <ColumnDefinition Width="15"/>
                         </Grid.ColumnDefinitions>
-                        <DockPanel Name="MenuLeftPart" Margin="0 0 10 0">
+                        <DockPanel Name="MenuLeftPart"
+                                   Margin="0 0 10 0">
                             <DockPanel DockPanel.Dock="Top"
                                        Grid.Row="1"
                                        Margin="0 5 0 0">
@@ -136,6 +137,10 @@
                                               Unchecked="TopmostToggleButton_Unchecked"/>
                             </DockPanel>
 
+                            <DockPanel>
+                                
+                            </DockPanel>
+
                             <Border></Border>
                         </DockPanel>
                         
@@ -158,6 +163,11 @@
                         <RowDefinition/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
+                    
+                    <Grid.Resources>
+                        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+                        <local:BooleanToVisibilityConverterInverse x:Key="converterInverse"/>
+                    </Grid.Resources>
 
                     <ScrollViewer VerticalScrollBarVisibility="Auto"
                                   Grid.Row="0"
@@ -191,7 +201,8 @@
                             Background="#15ffffff"
                             CornerRadius="5"
                             Margin="0 0 10 0"
-                            Name="ConsoleCurrentLineBorder">
+                            Name="ConsoleCurrentLineBorder"
+                            Visibility="{Binding ElementName=InstantSendToggleButton, Path=IsChecked, Converter={StaticResource converterInverse}}">
                         <TextBox Margin="5 0 5 0"
                                  TextWrapping="Wrap"
                                  KeyDown="TextBox_KeyDown"
@@ -224,7 +235,7 @@
                             Margin="2"
                             CornerRadius="2"
                             DockPanel.Dock="Right"/>
-                    <TextBlock Margin="5 0 0 0">Статус</TextBlock>
+                    <TextBlock Margin="5 0 0 0" Text="{Binding SelectedSerialPortName}"/>
                 </DockPanel>
             </Border>
 
