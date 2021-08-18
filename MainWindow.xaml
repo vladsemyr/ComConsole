@@ -105,6 +105,32 @@
                                         Click="Button_Click"/>
                             </DockPanel>
 
+                            <DockPanel DockPanel.Dock="Top"
+                                       Margin="0 15 0 0">
+                                <TextBlock VerticalAlignment="Center"
+                                           DockPanel.Dock="Left"
+                                           Text="Размер шрифта"
+                                           TextWrapping="Wrap"
+                                           Width="80"/>
+                                <!--
+                                <TextBox DockPanel.Dock="Right"
+                                         Width="80"
+                                         TextAlignment="Center"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Bottom"
+                                         Text="{Binding ElementName=ConsoleLog, Path=FontSize}"/>
+                                -->
+                                
+                                <!--
+                                    IsSnapToTickEnabled="True"
+                                    TickFrequency="1"
+                                -->
+                                <Slider Minimum="5"
+                                        Maximum="30"
+                                        VerticalAlignment="Center"
+                                        Value="{Binding ElementName=ConsoleLog, Path=FontSize}"/>
+                            </DockPanel>
+
 
                             <DockPanel DockPanel.Dock="Bottom">
                                 <TextBlock VerticalAlignment="Center"
@@ -137,9 +163,7 @@
                                               Unchecked="TopmostToggleButton_Unchecked"/>
                             </DockPanel>
 
-                            <DockPanel>
-                                
-                            </DockPanel>
+                            
 
                             <Border></Border>
                         </DockPanel>
