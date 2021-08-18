@@ -237,7 +237,8 @@
                         <RichTextBox Name="ConsoleLog"
                                      FontFamily="Consolas"
                                      PreviewKeyDown="ConsoleLog_PreviewKeyDown"
-                                     PreviewTextInput="ConsoleLog_PreviewTextInput">
+                                     PreviewTextInput="ConsoleLog_PreviewTextInput"
+                                     IsUndoEnabled="False">
                             <FlowDocument>
                                 <Paragraph>
                                     <Run Text="{Binding TestRun}"/>

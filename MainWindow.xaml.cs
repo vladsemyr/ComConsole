@@ -277,82 +277,87 @@ namespace ComConsole
                 ConsoleColor frgcolor = ConsoleColor.Default;
                 ConsoleColor bckcolor = ConsoleColor.Default;
 
-                try
+                int del_len = 0;
+                if (parts[i].Length >= 2 && parts[i][1] == 'm')
                 {
-                    int del_len = 0;
-                    if (parts[i].Length >= 2 && parts[i][1] == 'm')
+                    // 0m
+                    string bold_flag = parts[i].Substring(0, 1);
+                    if (uint.TryParse(bold_flag, out uint uint_weight))
                     {
-                        // 0m
-                        string bold_flag = parts[i].Substring(0, 1);
-                        weight = uint.Parse(bold_flag) == 1 ? ConsoleTextWeight.Bold : ConsoleTextWeight.Default;
-                        
+                        weight = uint_weight == 1 ? ConsoleTextWeight.Bold : ConsoleTextWeight.Default;
                         del_len = 2;
                     }
-                    else if (parts[i].Length >= 3 && parts[i][2] == 'm')
+                }
+                else if (parts[i].Length >= 3 && parts[i][2] == 'm')
+                {
+                    // 33m
+                    string color_flag = parts[i].Substring(0, 2);
+                    if (uint.TryParse(color_flag, out uint color_num))
                     {
-                        // 33m
-                        string color_flag = parts[i].Substring(0, 2);
-                        uint color_num = uint.Parse(color_flag);
-
                         ConsoleColorGet(color_num, ref frgcolor, ref bckcolor);
                         del_len = 3;
                     }
-                    else if (parts[i].Length >= 5 && parts[i][4] == 'm')
-                    {
-                        // 1;33m
-                        string bold_flag = parts[i].Substring(0, 1);
-                        string color_flag = parts[i].Substring(2, 2);
-                        
-                        weight = uint.Parse(bold_flag) == 1 ? ConsoleTextWeight.Bold : ConsoleTextWeight.Default;
-                        uint color_num = uint.Parse(color_flag);
+                }
+                else if (parts[i].Length >= 5 && parts[i][4] == 'm')
+                {
+                    // 1;33m
+                    string bold_flag = parts[i].Substring(0, 1);
+                    string color_flag = parts[i].Substring(2, 2);
 
+                    if (uint.TryParse(bold_flag, out uint uint_weight) &&
+                        uint.TryParse(color_flag, out uint color_num))
+                    {
+                        weight = uint_weight == 1 ? ConsoleTextWeight.Bold : ConsoleTextWeight.Default;
                         ConsoleColorGet(color_num, ref frgcolor, ref bckcolor);
                         del_len = 5;
                     }
-                    else if (parts[i].Length >= 6 && parts[i][5] == 'm')
+                }
+                else if (parts[i].Length >= 6 && parts[i][5] == 'm')
+                {
+                    // 33;40m
+                    if (uint.TryParse(parts[i].Substring(0, 2), out uint color_num_1) &&
+                        uint.TryParse(parts[i].Substring(3, 2), out uint color_num_2))
                     {
-                        // 33;40m
-                        uint color_num_1 = uint.Parse(parts[i].Substring(0, 2));
-                        uint color_num_2 = uint.Parse(parts[i].Substring(3, 2));
                         ConsoleColorGet(color_num_1, ref frgcolor, ref bckcolor);
                         ConsoleColorGet(color_num_2, ref frgcolor, ref bckcolor);
                         del_len = 6;
                     }
-                    else if (parts[i].Length >= 8 && parts[i][7] == 'm')
+                }
+                else if (parts[i].Length >= 8 && parts[i][7] == 'm')
+                {
+                    // 1;33;40m
+                    string bold_flag = parts[i].Substring(0, 1);
+
+                    if (uint.TryParse(bold_flag, out uint uint_weight) &&
+                        uint.TryParse(parts[i].Substring(2, 2), out uint color_num_1) &&
+                        uint.TryParse(parts[i].Substring(5, 2), out uint color_num_2))
                     {
-                        // 1;33;40m
-                        string bold_flag = parts[i].Substring(0, 1);
-                        uint color_num_1 = uint.Parse(parts[i].Substring(2, 2));
-                        uint color_num_2 = uint.Parse(parts[i].Substring(5, 2));
-                        
-                        weight = uint.Parse(bold_flag) == 1 ? ConsoleTextWeight.Bold : ConsoleTextWeight.Default;
+                        weight = uint_weight == 1 ? ConsoleTextWeight.Bold : ConsoleTextWeight.Default;
                         ConsoleColorGet(color_num_1, ref frgcolor, ref bckcolor);
                         ConsoleColorGet(color_num_2, ref frgcolor, ref bckcolor);
                         del_len = 8;
                     }
-                    else
-                    {
-                        throw new Exception("pass");
-                    }
-
-                    parts[i] = parts[i].Substring(del_len);
-                    bool is_bold = weight == ConsoleTextWeight.Bold;
-                    bool is_frgcolor_set = frgcolor != ConsoleColor.Default;
-                    bool is_bckcolor_set = bckcolor != ConsoleColor.Default;
-
-                    if (!is_frgcolor_set && !is_bckcolor_set)
-                        NextRun(parts[i], is_bold);
-                    if (is_frgcolor_set && !is_bckcolor_set)
-                        NextRun(parts[i], ConsoleColorToColor(frgcolor), is_bold);
-                    if (!is_frgcolor_set && is_bckcolor_set)
-                        NextRun(parts[i], null, ConsoleColorToColor(bckcolor), is_bold);
-                    if (is_frgcolor_set && is_bckcolor_set)
-                        NextRun(parts[i], ConsoleColorToColor(frgcolor), ConsoleColorToColor(bckcolor), is_bold);
                 }
-                catch
+                    
+                if (del_len == 0)
                 {
                     TestRun += parts[i];
+                    continue;
                 }
+
+                parts[i] = parts[i].Substring(del_len);
+                bool is_bold = weight == ConsoleTextWeight.Bold;
+                bool is_frgcolor_set = frgcolor != ConsoleColor.Default;
+                bool is_bckcolor_set = bckcolor != ConsoleColor.Default;
+
+                if (!is_frgcolor_set && !is_bckcolor_set)
+                    NextRun(parts[i], is_bold);
+                if (is_frgcolor_set && !is_bckcolor_set)
+                    NextRun(parts[i], ConsoleColorToColor(frgcolor), is_bold);
+                if (!is_frgcolor_set && is_bckcolor_set)
+                    NextRun(parts[i], null, ConsoleColorToColor(bckcolor), is_bold);
+                if (is_frgcolor_set && is_bckcolor_set)
+                    NextRun(parts[i], ConsoleColorToColor(frgcolor), ConsoleColorToColor(bckcolor), is_bold);
             }
 
             Dispatcher.Invoke(() =>
