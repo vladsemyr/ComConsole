@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO.Ports;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -40,7 +41,7 @@ namespace ComConsole
             InitializeComponent();
             DataContext = this;
 
-            SerialPortNames = SerialPort.GetPortNames();
+            SerialPortNames = SerialPort.GetPortNames().ToList().Append("не выбран").ToArray();
             SelectedSerialPortName = SerialPortNames[0];
             TestRun = "";
 
@@ -122,8 +123,17 @@ namespace ComConsole
         }
 
         Random random = new Random();
+        
+        /*
+        private InlineCollection _inlines;
+        public InlineCollection Inlines
+        {
+            get => _inlines;
+            set { _inlines = value; OnPropertyChanged("Inlines"); }
+        }
+        */
 
-        private void _NextRun(string text, Color? color, bool is_bold = false)
+        private void _NextRun(string text, Color? frgcolor, Color? bckcolor, bool is_bold = false)
         {
             Dispatcher.Invoke(() =>
             {
@@ -133,58 +143,53 @@ namespace ComConsole
                 Run run = prg.Inlines.LastInline as Run;
                 BindingOperations.ClearBinding(run, Run.TextProperty);
                 run.Text = run_text;
-
-                TestRun = text;
+                
                 run = new Run();
+                if (frgcolor != null)
+                    run.Foreground = new SolidColorBrush(frgcolor.Value);
 
-                if (color != null)
-                    run.Foreground = new SolidColorBrush(color.Value);
+                if (bckcolor != null)
+                    run.Background = new SolidColorBrush(bckcolor.Value);
 
                 if (is_bold)
                     run.FontWeight = FontWeights.ExtraBold;
 
                 _ = run.SetBinding(Run.TextProperty, "TestRun");
+                TestRun = text;
                 prg.Inlines.Add(run);
             });
         }
 
         private void NextRun(string text)
         {
-            _NextRun(text, null);
+            _NextRun(text, null, null);
         }
 
-        private void NextRun(string text, Color color)
+        private void NextRun(string text, Color frgcolor)
         {
-            _NextRun(text, color);
+            _NextRun(text, frgcolor, null);
         }
 
         private void NextRun(string text, bool is_bold)
         {
-            _NextRun(text, null, is_bold);
+            _NextRun(text, null, null, is_bold);
         }
 
-        private void NextRun(string text, Color color, bool is_bold)
+        private void NextRun(string text, Color frgcolor, bool is_bold)
         {
-            _NextRun(text, color, is_bold);
+            _NextRun(text, frgcolor, null, is_bold);
         }
 
-        /*
-            \x1b[1;30m \x1b[0;30m \x1b[1;30;40m         BLACK
-            \x1b[1;31m \x1b[0;31m \x1b[1;31;41m         RED
-            \x1b[1;32m \x1b[0;32m \x1b[1;32;42m         GREEN
-            \x1b[1;33m \x1b[0;33m \x1b[1;33;43m         BROWN/YELLOW
-            \x1b[1;34m \x1b[0;34m \x1b[1;34;44m         BLUE
-            \x1b[1;35m \x1b[0;35m \x1b[1;35;45m         MAGENTA
-            \x1b[1;36m \x1b[0;36m \x1b[1;36;46m         CYAN
-            \x1b[1;37m \x1b[0;37m \x1b[1;37;47m         GRAY/WHITE
-         
-         */
+        private void NextRun(string text, Color? frgcolor, Color bckcolor, bool is_bold)
+        {
+            _NextRun(text, frgcolor, bckcolor, is_bold);
+        }
 
-        /*
-            0,1   - жирность
-            30-37 - foreground
-            40-47 - background
-        */
+        private void NextRun(string text, Color? frgcolor, Color bckcolor)
+        {
+            _NextRun(text, frgcolor, bckcolor);
+        }
+
 
         private enum ConsoleColor
         {
@@ -223,12 +228,23 @@ namespace ComConsole
         }
 
 
+        void ConsoleColorGet(uint color_num, ref ConsoleColor frgcolor, ref ConsoleColor bckcolor)
+        {
+            if (color_num >= 30 && color_num <= 37)
+            {
+                frgcolor = (ConsoleColor)color_num;
+            }
+            else if (color_num >= 40 && color_num <= 47)
+            {
+                bckcolor = (ConsoleColor)(color_num - 10);
+            }
+        }
 
         private void _serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             if (!(sender is SerialPort serialPort))
                 return;
-            System.Random r = new System.Random();
+            Random r = new Random();
 
             string receivedText = serialPort.ReadExisting().Replace("\r", "");
 
@@ -238,7 +254,7 @@ namespace ComConsole
             TestRun = TestRun.Substring(0, TestRun.Length - run_tail_len); // без хвоста
 
             receivedText = run_tail + receivedText;
-            string[] parts = receivedText.Split(new string[] { "\x1b[" }, System.StringSplitOptions.None);
+            string[] parts = receivedText.Split(new string[] { "\x1b[" }, StringSplitOptions.None);
             
             for (int i = 0; i < parts.Length; ++i)
             {
@@ -263,15 +279,7 @@ namespace ComConsole
                         string color_flag = parts[i].Substring(0, 2);
                         uint color_num = uint.Parse(color_flag);
 
-                        if (color_num >= 30 && color_num <= 37)
-                        {
-                            frgcolor = (ConsoleColor)color_num;
-                        }
-                        else if (color_num >= 40 && color_num <= 47)
-                        {
-                            bckcolor = (ConsoleColor)(color_num - 10);
-                        }
-
+                        ConsoleColorGet(color_num, ref frgcolor, ref bckcolor);
                         del_len = 3;
                     }
                     else if (parts[i].Length >= 5 && parts[i][4] == 'm')
@@ -283,15 +291,7 @@ namespace ComConsole
                         weight = uint.Parse(bold_flag) == 1 ? ConsoleTextWeight.Bold : ConsoleTextWeight.Default;
                         uint color_num = uint.Parse(color_flag);
 
-                        if (color_num >= 30 && color_num <= 37)
-                        {
-                            frgcolor = (ConsoleColor)color_num;
-                        }
-                        else if (color_num >= 40 && color_num <= 47)
-                        {
-                            bckcolor = (ConsoleColor)(color_num - 10);
-                        }
-                        
+                        ConsoleColorGet(color_num, ref frgcolor, ref bckcolor);
                         del_len = 5;
                     }
                     else if (parts[i].Length >= 6 && parts[i][5] == 'm')
@@ -299,24 +299,8 @@ namespace ComConsole
                         // 33;40m
                         uint color_num_1 = uint.Parse(parts[i].Substring(0, 2));
                         uint color_num_2 = uint.Parse(parts[i].Substring(3, 2));
-                        if (color_num_1 >= 30 && color_num_1 <= 37)
-                        {
-                            frgcolor = (ConsoleColor)color_num_1;
-                        }
-                        else if (color_num_1 >= 40 && color_num_1 <= 47)
-                        {
-                            bckcolor = (ConsoleColor)(color_num_1 - 10);
-                        }
-
-                        if (color_num_2 >= 30 && color_num_2 <= 37)
-                        {
-                            frgcolor = (ConsoleColor)color_num_2;
-                        }
-                        else if (color_num_2 >= 40 && color_num_2 <= 47)
-                        {
-                            bckcolor = (ConsoleColor)(color_num_2 - 10);
-                        }
-
+                        ConsoleColorGet(color_num_1, ref frgcolor, ref bckcolor);
+                        ConsoleColorGet(color_num_2, ref frgcolor, ref bckcolor);
                         del_len = 6;
                     }
                     else if (parts[i].Length >= 8 && parts[i][7] == 'm')
@@ -327,35 +311,24 @@ namespace ComConsole
                         uint color_num_2 = uint.Parse(parts[i].Substring(5, 2));
                         
                         weight = uint.Parse(bold_flag) == 1 ? ConsoleTextWeight.Bold : ConsoleTextWeight.Default;
-                        if (color_num_1 >= 30 && color_num_1 <= 37)
-                        {
-                            frgcolor = (ConsoleColor)color_num_1;
-                        }
-                        else if (color_num_1 >= 40 && color_num_1 <= 47)
-                        {
-                            bckcolor = (ConsoleColor)(color_num_1 - 10);
-                        }
-
-                        if (color_num_2 >= 30 && color_num_2 <= 37)
-                        {
-                            frgcolor = (ConsoleColor)color_num_2;
-                        }
-                        else if (color_num_2 >= 40 && color_num_2 <= 47)
-                        {
-                            bckcolor = (ConsoleColor)(color_num_2 - 10);
-                        }
-
+                        ConsoleColorGet(color_num_1, ref frgcolor, ref bckcolor);
+                        ConsoleColorGet(color_num_2, ref frgcolor, ref bckcolor);
                         del_len = 8;
                     }
 
                     parts[i] = parts[i].Substring(del_len);
-
                     bool is_bold = weight == ConsoleTextWeight.Bold;
+                    bool is_frgcolor_set = frgcolor != ConsoleColor.Default;
+                    bool is_bckcolor_set = bckcolor != ConsoleColor.Default;
 
-                    if (frgcolor != ConsoleColor.Default)
-                        NextRun(parts[i], ConsoleColorToColor(frgcolor), is_bold);
-                    else
+                    if (!is_frgcolor_set && !is_bckcolor_set)
                         NextRun(parts[i], is_bold);
+                    if (is_frgcolor_set && !is_bckcolor_set)
+                        NextRun(parts[i], ConsoleColorToColor(frgcolor), is_bold);
+                    if (!is_frgcolor_set && is_bckcolor_set)
+                        NextRun(parts[i], null, ConsoleColorToColor(bckcolor), is_bold);
+                    if (is_frgcolor_set && is_bckcolor_set)
+                        NextRun(parts[i], ConsoleColorToColor(frgcolor), ConsoleColorToColor(bckcolor), is_bold);
                 }
                 catch
                 {
@@ -363,7 +336,6 @@ namespace ComConsole
                 }
             }
 
-            //(ConsoleLog.Document.Blocks.FirstBlock as Paragraph).Inlines.Add(run);
             Dispatcher.Invoke(() =>
             {
                 ConsoleScroll.ScrollToEnd();
@@ -419,8 +391,12 @@ namespace ComConsole
             }
 
             if (!_serialPort.IsOpen)
+            {
+                comNameComboBox.Background = new SolidColorBrush(Color.FromArgb(100, 200, 100, 100));
                 return;
+            }
             
+            comNameComboBox.Background = new SolidColorBrush(Color.FromArgb(0, 200, 100, 100));
             _serialPort.DataReceived += _serialPort_DataReceived;
         }
 
@@ -451,16 +427,6 @@ namespace ComConsole
             }
 
             rtb.CaretPosition = rtb.CaretPosition.DocumentEnd;
-        }
-
-        private void TopmostToggleButton_Checked(object sender, RoutedEventArgs e)
-        {
-            Topmost = true;
-        }
-
-        private void TopmostToggleButton_Unchecked(object sender, RoutedEventArgs e)
-        {
-            Topmost = false;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

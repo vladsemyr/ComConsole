@@ -11,7 +11,7 @@
         WindowStyle="None"
         AllowsTransparency="True"
         ResizeMode="CanResizeWithGrip"
-        
+        Topmost="{Binding ElementName=TopmostToggleButton, Path=IsChecked}"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
@@ -62,31 +62,83 @@
                                            Text="Порт"
                                            DockPanel.Dock="Left"
                                            Margin="0 0 10 0"/>
+
                                 <ComboBox DockPanel.Dock="Right"
                                           SelectedIndex="0"
-                                          Width="80"
+                                          Width="120"
                                           HorizontalAlignment="Right"
                                           ItemsSource="{Binding SerialPortNames}"
                                           SelectedItem="{Binding SelectedSerialPortName}"
-                                          SelectionChanged="ComboBox_SelectionChanged"/>
+                                          SelectionChanged="ComboBox_SelectionChanged"
+                                          HorizontalContentAlignment="Center"/>
+                                
 
                             </DockPanel>
 
                             <DockPanel DockPanel.Dock="Top"
-                                       Margin="5 5 0 30">
-                                <Border DockPanel.Dock="Left"/>
-                                <Button Content="Настройка"
-                                        Height="20"
+                                       Margin="0 10 0 0">
+                                <TextBlock DockPanel.Dock="Left"
+                                           Text="Настройка порта"
+                                           VerticalAlignment="Center"/>
+                                <Button DockPanel.Dock="Right"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Right"
                                         Padding="0"
-                                        DockPanel.Dock="Right"
-                                        Width="80"
-                                        HorizontalAlignment="Right"/>
+                                        Width="32"
+                                        Height="20">
+                                    
+                                    <TextBlock TextAlignment="Center"
+                                               Text="&#x1f527;"/>
+                                </Button>
                             </DockPanel>
                             
-                            <DockPanel DockPanel.Dock="Top">
+                            <DockPanel DockPanel.Dock="Bottom"
+                                       Margin="0 10 0 0">
+
                                 <TextBlock VerticalAlignment="Center"
                                            DockPanel.Dock="Left"
-                                           Text="Мгновенная отправка"
+                                           Text="Шрифт"/>
+                                <Button DockPanel.Dock="Right"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Right"
+                                        Padding="0"
+                                        Width="32"
+                                        Height="20">
+
+                                    <TextBlock TextAlignment="Center"
+                                               Text="&#x1f527;"/>
+                                </Button>
+
+                                <!--
+                                <TextBox DockPanel.Dock="Right"
+                                         Width="80"
+                                         TextAlignment="Center"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Bottom"
+                                         Text="{Binding ElementName=ConsoleLog, Path=FontSize}"/>
+                                -->
+                                <!--
+                                    IsSnapToTickEnabled="True"
+                                    TickFrequency="1"
+                                -->
+
+                                
+                                
+                                <!--
+                                <Slider Minimum="5"
+                                        Maximum="30"
+                                        materialDesign:SliderAssist.OnlyShowFocusVisualWhileDragging="True"
+                                        VerticalAlignment="Center"
+                                        
+                                        Value="{Binding ElementName=ConsoleLog, Path=FontSize}"/>
+                                -->
+                            </DockPanel>
+
+                            <DockPanel DockPanel.Dock="Bottom"
+                                       Margin="0 10 0 0">
+                                <TextBlock VerticalAlignment="Center"
+                                           DockPanel.Dock="Left"
+                                           Text="Отправка"
                                            TextWrapping="Wrap"
                                            Width="100"/>
 
@@ -98,41 +150,20 @@
                                               IsChecked="True"/>
                             </DockPanel>
 
+                            <!--
                             <DockPanel DockPanel.Dock="Top" Margin="0 10 0 0">
                                 <Button Height="20"
                                         Content="Очистить консоль"
                                         Padding="0"
                                         Click="Button_Click"/>
                             </DockPanel>
+                            -->
 
-                            <DockPanel DockPanel.Dock="Top"
-                                       Margin="0 15 0 0">
-                                <TextBlock VerticalAlignment="Center"
-                                           DockPanel.Dock="Left"
-                                           Text="Размер шрифта"
-                                           TextWrapping="Wrap"
-                                           Width="80"/>
-                                <!--
-                                <TextBox DockPanel.Dock="Right"
-                                         Width="80"
-                                         TextAlignment="Center"
-                                         HorizontalAlignment="Right"
-                                         VerticalAlignment="Bottom"
-                                         Text="{Binding ElementName=ConsoleLog, Path=FontSize}"/>
-                                -->
-                                
-                                <!--
-                                    IsSnapToTickEnabled="True"
-                                    TickFrequency="1"
-                                -->
-                                <Slider Minimum="5"
-                                        Maximum="30"
-                                        VerticalAlignment="Center"
-                                        Value="{Binding ElementName=ConsoleLog, Path=FontSize}"/>
-                            </DockPanel>
+                            
 
 
-                            <DockPanel DockPanel.Dock="Bottom">
+                            <DockPanel DockPanel.Dock="Bottom"
+                                       Margin="0 10 0 0">
                                 <TextBlock VerticalAlignment="Center"
                                            Text="Темная тема"
                                            DockPanel.Dock="Left"/>
@@ -148,7 +179,7 @@
                             </DockPanel>
 
                             <DockPanel DockPanel.Dock="Bottom"
-                                       Margin="0 0 0 10">
+                                       Margin="0 10 0 0">
                                 <TextBlock VerticalAlignment="Center"
                                            Text="Поверх окон"
                                            DockPanel.Dock="Left"/>
@@ -158,12 +189,9 @@
                                               Margin="10 0 0 0"
                                               IsChecked="False"
                                               DockPanel.Dock="Right"
-                                              HorizontalAlignment="Right"
-                                              Checked="TopmostToggleButton_Checked"
-                                              Unchecked="TopmostToggleButton_Unchecked"/>
+                                              HorizontalAlignment="Right"/>
                             </DockPanel>
 
-                            
 
                             <Border></Border>
                         </DockPanel>
